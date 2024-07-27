@@ -3,13 +3,9 @@ from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel  # Import BaseModel from pydantic
-from mistral_inference.generate import generate
-from mistral_common.tokens.tokenizers.mistral import MistralTokenizer
-from mistral_common.protocol.instruct.messages import UserMessage
-from mistral_common.protocol.instruct.request import ChatCompletionRequest
 import os
 import torch
-
+os.environ['USE_XFORMERS'] = '0'
 app = FastAPI()
 
 app.add_middleware(
@@ -50,8 +46,9 @@ app.mount("/static", StaticFiles(directory="static"), name="static")
 async def predict(data: InputData):
     # Format the input for the model
     formatted_input = f"User: {data.email_body}\nAssistant:"
+    print("Getting inputs thru tokenizer...")
     inputs = tokenizer(formatted_input, return_tensors="pt", truncation=True).to("cuda")  # Move inputs to GPU
-
+    print("Generating the outputs...")
     # Generate output
     with torch.no_grad():
         outputs = model.generate(
@@ -63,7 +60,7 @@ async def predict(data: InputData):
             pad_token_id=tokenizer.pad_token_id,
             use_cache=False  # Ensure cache usage is enabled
         )
-
+    print("decoding outputs..")
     # Decode the generated output
     generated_text = tokenizer.decode(outputs[0], skip_special_tokens=True)
     return {"generated_subject": generated_text}
