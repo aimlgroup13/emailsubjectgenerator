@@ -21,7 +21,7 @@ The models were trained and fine-tuned using the provided Python code. The train
 ## Performance Comparison
 
 The performance of the models was evaluated in two scenarios:
-1. **Pre-trained Models with Fine-Tuning**: The pre-trained models were fine-tuned using the AESLC corpus.
+1. **Pre-trained Models with Fine-Tuning**: The pre-trained models were fine-tuned using model generator parameters
 2. **Models Trained Using AESLC Corpus**: The models were trained from scratch using the AESLC corpus.
 
 The results are summarized in the table below:
