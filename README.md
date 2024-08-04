@@ -45,8 +45,29 @@ The Python code used for training and fine-tuning the models is available in thi
 - `train_model.py`: Script for training the models.
 - `evaluate_model.py`: Script for evaluating the model performance.
 
-## Conclusion
 
-This project demonstrates the effectiveness of fine-tuning pre-trained language models using a specialized corpus like AESLC for the task of email subject line prediction. The comparison of ROUGE metrics highlights the improvements achieved through fine-tuning, providing insights into the performance of different model variants.
+### Comparison
+
+#### Pre-trained with Fine-Tuning
+- **LLaMA-3B** significantly outperforms **Mistral-7B** across all ROUGE metrics.
+  - **ROUGE-1 F-measure**: 0.3172 (LLaMA-3B) vs. 0.0897 (Mistral-7B)
+  - **ROUGE-2 F-measure**: 0.1653 (LLaMA-3B) vs. 0.0466 (Mistral-7B)
+  - **ROUGE-L F-measure**: 0.3079 (LLaMA-3B) vs. 0.0781 (Mistral-7B)
+
+#### Trained Using AESLC Corpus
+- **Mistral-7B** outperforms **LLaMA-3B** across all ROUGE metrics.
+  - **ROUGE-1 F-measure**: 0.0854 (Mistral-7B) vs. 0.0292 (LLaMA-3B)
+  - **ROUGE-2 F-measure**: 0.0436 (Mistral-7B) vs. 0.0090 (LLaMA-3B)
+  - **ROUGE-L F-measure**: 0.0746 (Mistral-7B) vs. 0.0292 (LLaMA-3B)
+
+### Conclusion
+
+This project demonstrates the effectiveness of fine-tuning pre-trained language models using a specialized corpus like AESLC for the task of email subject line prediction. The comparison of ROUGE metrics highlights the following insights:
+
+- For the scenario of **pre-trained models with fine-tuning**, **LLaMA-3B** performs better.
+- For the scenario of **models trained using the AESLC corpus**, **Mistral-7B** performs better.
+
+The choice of the better model depends on the specific use case and training scenario.
 
 For more details, please refer to the individual scripts and their documentation within this repository.
+
