@@ -30,8 +30,8 @@ The results are summarized in the table below:
 |------------|----------------------------------|-----------------|--------------|-----------------|
 | Mistral-7B | Pre-trained with Fine-Tuning     | 0.8837          | 0.0478       | 0.0897          |
 | Mistral-7B | Trained Using AESLC Corpus       | 0.8925          | 0.0455       | 0.0854          |
-| LLaMA-3B   | Pre-trained with Fine-Tuning     | 0.3118          | 0.3915       | 0.3172          |
-| LLaMA-3B   | Trained Using AESLC Corpus       | 0.19            | 0.0169       | 0.0292          |
+| LLaMA-3B   | Pre-trained (without fine-tuning)| 0.2645          | 0.2120       | 0.2133          |
+| LLaMA-3B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
 | GPT-2      | Pre-trained with Fine-Tuning     | XX.XX           | XX.XX        | XX.XX           |
 | GPT-2      | Trained Using AESLC Corpus       | XX.XX           | XX.XX        | XX.XX           |
 
