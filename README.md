@@ -5,8 +5,8 @@
 This project involves training three variants of large language models (LLMs) to predict email subject lines given the email body. The models used are:
 
 - **Mistral-7B**
-- **LLaMA-3B**
-- **GPT-2**
+- **LLaMA-8B**
+- **Gemma-7B**
 
 The training was performed using the [AESLC](https://github.com/ryanzhumich/AESLC) dataset. This dataset provides a corpus for email subject line prediction, enabling us to fine-tune pre-trained models to improve their performance on this specific task.
 
@@ -30,12 +30,11 @@ The results are summarized in the table below:
 |------------|----------------------------------|-----------------|--------------|-----------------|
 | Mistral-7B | Pre-trained with Fine-Tuning     | 0.8837          | 0.0478       | 0.0897          |
 | Mistral-7B | Trained Using AESLC Corpus       | 0.8925          | 0.0455       | 0.0854          |
-| LLaMA-3B   | Pre-trained (without fine-tuning)| 0.2645          | 0.2120       | 0.2133          |
-| LLaMA-3B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
-| GPT-2      | Pre-trained with Fine-Tuning     | XX.XX           | XX.XX        | XX.XX           |
-| GPT-2      | Trained Using AESLC Corpus       | XX.XX           | XX.XX        | XX.XX           |
+| LLaMA-8B   | Pre-trained (without fine-tuning)| 0.2645          | 0.2120       | 0.2133          |
+| LLaMA-8B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
+| Gemma-7B   | Pre-trained                      | 0.2625          | 0.2167       | 0.2314          |
+| Gemma-7B   | Trained Using AESLC Corpus       | 0.2910          | 0.4127       | 0.3116          |
 
-*Note: Replace "XX.XX" with actual metric values obtained from your evaluations for GPT-2.*
 
 ## Python Training Code
 
@@ -49,22 +48,22 @@ The Python code used for training and fine-tuning the models is available in thi
 ### Comparison
 
 #### Pre-trained with Fine-Tuning
-- **LLaMA-3B** significantly outperforms **Mistral-7B** across all ROUGE metrics.
-  - **ROUGE-1 F-measure**: 0.3172 (LLaMA-3B) vs. 0.0897 (Mistral-7B)
-  - **ROUGE-2 F-measure**: 0.1653 (LLaMA-3B) vs. 0.0466 (Mistral-7B)
-  - **ROUGE-L F-measure**: 0.3079 (LLaMA-3B) vs. 0.0781 (Mistral-7B)
+- **LLaMA-8B** significantly outperforms **Mistral-7B** across all ROUGE metrics.
+  - **ROUGE-1 F-measure**: 0.3172 (LLaMA-8B) vs. 0.0897 (Mistral-7B)
+  - **ROUGE-2 F-measure**: 0.1653 (LLaMA-8B) vs. 0.0466 (Mistral-7B)
+  - **ROUGE-L F-measure**: 0.3079 (LLaMA-8B) vs. 0.0781 (Mistral-7B)
 
 #### Trained Using AESLC Corpus
 - **Mistral-7B** outperforms **LLaMA-3B** across all ROUGE metrics.
-  - **ROUGE-1 F-measure**: 0.0854 (Mistral-7B) vs. 0.0292 (LLaMA-3B)
-  - **ROUGE-2 F-measure**: 0.0436 (Mistral-7B) vs. 0.0090 (LLaMA-3B)
-  - **ROUGE-L F-measure**: 0.0746 (Mistral-7B) vs. 0.0292 (LLaMA-3B)
+  - **ROUGE-1 F-measure**: 0.0854 (Mistral-7B) vs. 0.0292 (LLaMA-8B)
+  - **ROUGE-2 F-measure**: 0.0436 (Mistral-7B) vs. 0.0090 (LLaMA-8B)
+  - **ROUGE-L F-measure**: 0.0746 (Mistral-7B) vs. 0.0292 (LLaMA-8B)
 
 ### Conclusion
 
 This project demonstrates the effectiveness of fine-tuning pre-trained language models using a specialized corpus like AESLC for the task of email subject line prediction. The comparison of ROUGE metrics highlights the following insights:
 
-- For the scenario of **pre-trained models with fine-tuning**, **LLaMA-3B** performs better.
+- For the scenario of **pre-trained models with fine-tuning**, **LLaMA-8B** performs better.
 - For the scenario of **models trained using the AESLC corpus**, **Mistral-7B** performs better.
 
 The choice of the better model depends on the specific use case and training scenario.
