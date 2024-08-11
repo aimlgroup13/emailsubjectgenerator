@@ -45,26 +45,24 @@ The Python code used for training and fine-tuning the models is available in thi
 - `evaluate_model.py`: Script for evaluating the model performance.
 
 
-### Comparison
+**Conclusion**: 
+The Mistral-7B model fine-tuned on the pre-trained model slightly outperforms the one trained using the AESLC corpus. The differences in ROUGE metrics are minimal, but the fine-tuned model shows a better balance overall.
 
-#### Pre-trained with Fine-Tuning
-- **LLaMA-8B** significantly outperforms **Mistral-7B** across all ROUGE metrics.
-  - **ROUGE-1 F-measure**: 0.3172 (LLaMA-8B) vs. 0.0897 (Mistral-7B)
-  - **ROUGE-2 F-measure**: 0.1653 (LLaMA-8B) vs. 0.0466 (Mistral-7B)
-  - **ROUGE-L F-measure**: 0.3079 (LLaMA-8B) vs. 0.0781 (Mistral-7B)
+### LLaMA-8B
 
-#### Trained Using AESLC Corpus
-- **Mistral-7B** outperforms **LLaMA-3B** across all ROUGE metrics.
-  - **ROUGE-1 F-measure**: 0.0854 (Mistral-7B) vs. 0.0292 (LLaMA-8B)
-  - **ROUGE-2 F-measure**: 0.0436 (Mistral-7B) vs. 0.0090 (LLaMA-8B)
-  - **ROUGE-L F-measure**: 0.0746 (Mistral-7B) vs. 0.0292 (LLaMA-8B)
+- **Pre-trained (without fine-tuning)**:
+  - ROUGE Precision: 0.2645
+  - ROUGE Recall: 0.2120
+  - ROUGE F-measure: 0.2133
 
-### Conclusion
+- **Trained Using AESLC Corpus**:
+  - ROUGE Precision: 0.3250
+  - ROUGE Recall: 0.3166
+  - ROUGE F-measure: 0.3142
 
-This project demonstrates the effectiveness of fine-tuning pre-trained language models using a specialized corpus like AESLC for the task of email subject line prediction. The comparison of ROUGE metrics highlights the following insights:
+**Conclusion**: 
+The LLaMA-8B model trained using the AESLC corpus shows a significant improvement in all ROUGE metrics compared to the pre-trained model without fine-tuning. This indicates that training with the AESLC corpus substantially enhances the model's performance.
 
-- For the scenario of **pre-trained models with fine-tuning**, **LLaMA-8B** performs better.
-- For the scenario of **models trained using the AESLC corpus**, **Mistral-7B** performs better.
 
 The choice of the better model depends on the specific use case and training scenario.
 
