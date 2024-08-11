@@ -60,11 +60,21 @@ The Mistral-7B model fine-tuned on the pre-trained model slightly outperforms th
   - ROUGE Recall: 0.3166
   - ROUGE F-measure: 0.3142
 
-**Conclusion**: 
-The LLaMA-8B model trained using the AESLC corpus shows a significant improvement in all ROUGE metrics compared to the pre-trained model without fine-tuning. This indicates that training with the AESLC corpus substantially enhances the model's performance.
+## Conclusion
 
+- **Mistral-7B**: Exhibits a much higher ROUGE Precision (0.8925), indicating that it generates more accurate content with fewer errors. However, it shows significantly lower ROUGE Recall (0.0455) and F-measure (0.0854), suggesting it may miss relevant content or lack overall balance.
 
-The choice of the better model depends on the specific use case and training scenario.
+- **LLaMA-8B**: Demonstrates more balanced performance across all three metrics, with ROUGE Precision (0.3250), Recall (0.3166), and F-measure (0.3142) being relatively close. This balance indicates that LLaMA-8B is more consistent in generating comprehensive and accurate outputs.
 
-For more details, please refer to the individual scripts and their documentation within this repository.
+### Which Performed Better?
+
+- **Mistral-7B**: If the priority is **precision** (i.e., generating accurate content with fewer errors), Mistral-7B is the better performer.
+  
+- **LLaMA-8B**: If a more **balanced** performance across precision, recall, and F-measure is desired, LLaMA-8B outperforms Mistral-7B when trained with the AESLC dataset.
+
+### Recommendation for Subject Line Generation
+
+In the context of generating subject lines, **Mistral-7B** is recommended if you prioritize accuracy and precision, ensuring that the generated subject lines are concise and on point. However, if you require a model that is more consistent in capturing relevant content comprehensively, **LLaMA-8B** would be the better choice.
+
+In summary, Mistral-7B excels in precision, while LLaMA-8B offers a better overall balance in performance metrics.
 
