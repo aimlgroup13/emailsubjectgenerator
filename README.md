@@ -48,36 +48,52 @@ The Python code used for training and fine-tuning the models is available in thi
 - `evaluate_model.py`: Script for evaluating the model performance.
 
 
-**Conclusion**: 
-The Mistral-7B model fine-tuned on the pre-trained model slightly outperforms the one trained using the AESLC corpus. The differences in ROUGE metrics are minimal, but the fine-tuned model shows a better balance overall.
+# Model Performance for Subject Line Generation
+
+This document provides a comparative analysis of three models used for generating subject lines: **Mistral-7B**, **LLaMA-8B**, and **BART**. The performance of these models is evaluated based on the ROUGE metrics, with a focus on ROUGE F-measure, which reflects the balance between precision and recall.
+
+## Model Performance Metrics
+
+### Mistral-7B
+- **ROUGE Precision**: 0.8925
+- **ROUGE Recall**: 0.0455
+- **ROUGE F-measure**: 0.0854
+
+**Analysis**:
+Mistral-7B exhibits very high precision, indicating that it generates highly accurate content. However, it has a low recall and F-measure, suggesting it misses relevant content and lacks overall balance in generating comprehensive subject lines.
 
 ### LLaMA-8B
+- **ROUGE Precision**: 0.3250
+- **ROUGE Recall**: 0.3166
+- **ROUGE F-measure**: 0.3142
 
-- **Pre-trained (without fine-tuning)**:
-  - ROUGE Precision: 0.2645
-  - ROUGE Recall: 0.2120
-  - ROUGE F-measure: 0.2133
+**Analysis**:
+LLaMA-8B demonstrates the best overall balance among the models. It achieves relatively high precision, recall, and F-measure, making it effective at generating subject lines that are both accurate and comprehensive.
 
-- **Trained Using AESLC Corpus**:
-  - ROUGE Precision: 0.3250
-  - ROUGE Recall: 0.3166
-  - ROUGE F-measure: 0.3142
+### BART
+- **ROUGE Precision**: 0.1350
+- **ROUGE Recall**: 0.0803
+- **ROUGE F-measure**: 0.0919
 
-## Conclusion
+**Analysis**:
+BART has the lowest precision and recall of the models. Its F-measure is moderate, reflecting that while it generates some relevant content, it is less competitive compared to LLaMA-8B and Mistral-7B in terms of generating high-quality subject lines.
 
-- **Mistral-7B**: Exhibits a much higher ROUGE Precision (0.8925), indicating that it generates more accurate content with fewer errors. However, it shows significantly lower ROUGE Recall (0.0455) and F-measure (0.0854), suggesting it may miss relevant content or lack overall balance.
+## Comparative Summary
 
-- **LLaMA-8B**: Demonstrates more balanced performance across all three metrics, with ROUGE Precision (0.3250), Recall (0.3166), and F-measure (0.3142) being relatively close. This balance indicates that LLaMA-8B is more consistent in generating comprehensive and accurate outputs.
+- **LLaMA-8B**: With the highest F-measure (0.3142), LLaMA-8B is the best performer overall. It provides a balanced approach, excelling in both precision and recall, making it the top choice for generating subject lines that are accurate and relevant.
 
-### Which Performed Better?
+- **Mistral-7B**: Although it achieves high precision (0.8925), its low F-measure (0.0854) indicates that it may miss relevant content. It is suitable if precision is the primary focus but less so for balanced performance.
 
-- **Mistral-7B**: If the priority is **precision** (i.e., generating accurate content with fewer errors), Mistral-7B is the better performer.
-  
-- **LLaMA-8B**: If a more **balanced** performance across precision, recall, and F-measure is desired, LLaMA-8B outperforms Mistral-7B when trained with the AESLC dataset.
+- **BART**: This model performs the least effectively in terms of precision and recall. Its moderate F-measure suggests that it is less competitive for generating subject lines compared to LLaMA-8B and Mistral-7B.
 
-### Recommendation for Subject Line Generation
+## Recommendation
 
-In the context of generating subject lines, **Mistral-7B** is recommended if you prioritize accuracy and precision, ensuring that the generated subject lines are concise and on point. However, if you require a model that is more consistent in capturing relevant content comprehensively, **LLaMA-8B** would be the better choice.
+- **LLaMA-8B** is recommended for generating subject lines if a balanced performance across precision, recall, and F-measure is desired.
 
-In summary, Mistral-7B excels in precision, while LLaMA-8B offers a better overall balance in performance metrics.
+- **Mistral-7B** is better suited if high precision is crucial, though it has a lower overall F-measure.
+
+- **BART** is less favorable for subject line generation due to its lower performance metrics.
+
+In summary, **LLaMA-8B** offers the best overall performance based on F-measure, providing a balanced approach between accuracy and relevance in subject line generation.
+
 
