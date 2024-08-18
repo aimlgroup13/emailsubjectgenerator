@@ -43,17 +43,14 @@ def get_form():
 @app.post("/predict")
 async def predict(input_text: str = Form(...)):
     inputs = tokenizer(input_text, return_tensors="pt").to('cuda')
-    outputs = model.generate(inputs['input_ids'], max_length=512)
-    prediction = tokenizer.decode(outputs[0], skip_special_tokens=True)
-    subject_marker = '@subject'
-    start_index = prediction.find(subject_marker)
-    subject = ""
-    if start_index != -1:
-        # Extract the text after '@subject'
-        start_index += len(subject_marker)
-        subject = prediction[start_index:].strip()
-        subject = subject.split('\n', 1)[0].strip()
-    else:
-        subject = "Failed to predict"
-    print(subject)
-    return {"prediction": subject}
+    outputs = model.generate(
+       inputs['input_ids'], 
+       attention_mask=inputs['attention_mask'],  # Include attention mask
+       max_length=512, 
+       pad_token_id=tokenizer.eos_token_id,  # Set pad_token_id to eos_token_id
+       no_repeat_ngram_size=3,  # To prevent repetition
+       early_stopping=True  # To prevent excessive generation
+    )
+    subject_line = tokenizer.decode(outputs[0], skip_special_tokens=True).strip()
+    print("Generated Subject:", subject_line)
+    return {"prediction": subject_line}

@@ -1,0 +1,124 @@
+from transformers import BartTokenizer, BartForConditionalGeneration, Seq2SeqTrainer, Seq2SeqTrainingArguments
+from datasets import Dataset
+import json
+from sklearn.model_selection import train_test_split
+
+# Define the email prompt template and EOS token
+email_prompt = """Below is an instruction that describes a task, paired with an input that provides further context.
+
+### Instruction:
+{}
+
+### Input:
+{}
+
+### Response:
+{}"""
+
+# Load the tokenizer
+tokenizer = BertTokenizer.from_pretrained('bert-base-uncased')
+EOS_TOKEN = tokenizer.eos_token  # EOS token is necessary
+
+# Load your dataset from the JSON file
+json_file_path = '/home/ramch/AI-AUTOMATED-QA/dataset.json'
+with open(json_file_path, 'r') as file:
+    data = json.load(file)
+
+# Convert the list of dictionaries to a Hugging Face Dataset
+dataset = Dataset.from_list(data)
+
+def formatting_prompts_func(examples):
+    instructions = examples["instruction"]
+    inputs = examples["input"]
+    outputs = examples["output"]
+    texts = []
+    for instruction, input_text, output_text in zip(instructions, inputs, outputs):
+        # Construct the text without EOS token
+        text = email_prompt.format(instruction, input_text, output_text)
+        texts.append(text)
+    return {"text": texts}
+
+def tokenize_and_encode(texts):
+    return tokenizer(texts, padding=True, truncation=True, return_tensors="pt")
+
+def format_and_tokenize(examples):
+    formatted_examples = formatting_prompts_func(examples)
+    tokenized_inputs = tokenize_and_encode(formatted_examples["text"])
+    return tokenized_inputs
+
+def format_example(examples):
+    text = email_prompt.format(examples["instruction"], examples["input"], examples["output"])
+    tokenized_inputs = tokenizer(text, padding=True, truncation=True, return_tensors="pt")
+    tokenized_labels = tokenizer(examples["output"], padding=True, truncation=True, return_tensors="pt")
+    return {
+        "input_ids": tokenized_inputs["input_ids"].flatten().tolist(),
+        "attention_mask": tokenized_inputs["attention_mask"].flatten().tolist(),
+        "labels": tokenized_labels["input_ids"].flatten().tolist(),
+    }
+dataset = dataset.map(format_example, batched=False)
+
+print("loading the training data...")
+
+print("Tokenizing the dataset")
+# Tokenize the datasets
+def tokenize_function(examples):
+    return tokenizer(examples["text"], truncation=True, padding="max_length", max_length=512)
+
+print("Getting formatted dataset")
+formatted_dataset = dataset.map(formatting_prompts_func, batched=True)
+
+print("Getting tokenized dataset")
+tokenized_dataset = formatted_dataset.map(tokenize_function, batched=True)
+
+# Split the dataset into training and evaluation sets
+split_dataset = tokenized_dataset.train_test_split(test_size=0.1)
+train_dataset = split_dataset['train']
+test_dataset = split_dataset['test']
+
+from transformers import EncoderDecoderModel, BertTokenizer, TrainingArguments, Trainer
+
+print("Define the model")
+# Define the model and tokenizer
+model = EncoderDecoderModel.from_encoder_decoder_pretrained("bert-base-uncased", "bert-base-uncased")
+
+# Configure the model
+model.config.decoder_start_token_id = tokenizer.bos_token_id
+model.config.eos_token_id = tokenizer.sep_token_id
+model.config.max_length = 256
+model.config.no_repeat_ngram_size = 3
+model.config.early_stopping = True
+model.config.length_penalty = 2.0
+model.config.num_beams = 4
+
+# Define the training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="steps",
+    learning_rate=5e-5,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=16,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    logging_dir="./logs",
+    logging_steps=50,
+    save_total_limit=5,
+    push_to_hub=True,
+    remove_unused_columns=False
+)
+
+# Initialize the Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=test_dataset,
+    tokenizer=tokenizer
+)
+
+print("Training the model")
+# Train the model
+trainer.train()
+
+print("Push to hub")
+# Push the model to the Hugging Face hub
+trainer.push_to_hub("bert-aeslc-subject-line")
