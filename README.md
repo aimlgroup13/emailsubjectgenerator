@@ -33,7 +33,7 @@ The results are summarized in the table below:
 | Mistral-7B | Trained Using AESLC Corpus       | 0.8925          | 0.0455       | 0.0854          |
 | LLaMA-8B   | Pre-trained (without fine-tuning)| 0.2645          | 0.2120       | 0.2133          |
 | LLaMA-8B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
-| BART       | Pre-trained with Fine-tuning     | ****            | *****        | ******          |
+| BART       | Pre-trained with Fine-tuning     | 0.0246          | 0.5319       | 0.0456          |
 | BART       | Trained with AESLC               | 0.3039          | 0.3788       | 0.3079          |
 | Gemma-7B   | Pre-trained                      | 0.2625          | 0.2167       | 0.2314          |
 | Gemma-7B   | Trained Using AESLC Corpus       | 0.2910          | 0.4127       | 0.3116          |
