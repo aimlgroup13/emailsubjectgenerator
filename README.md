@@ -6,6 +6,7 @@ This project involves training three variants of large language models (LLMs) to
 
 - **Mistral-7B**
 - **LLaMA-8B**
+- **BART**
 - **Gemma-7B**
 
 The training was performed using the [AESLC](https://github.com/ryanzhumich/AESLC) dataset. This dataset provides a corpus for email subject line prediction, enabling us to fine-tune pre-trained models to improve their performance on this specific task.
@@ -32,6 +33,8 @@ The results are summarized in the table below:
 | Mistral-7B | Trained Using AESLC Corpus       | 0.8925          | 0.0455       | 0.0854          |
 | LLaMA-8B   | Pre-trained (without fine-tuning)| 0.2645          | 0.2120       | 0.2133          |
 | LLaMA-8B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
+| BART       | Pre-trained with Fine-tuning     | ****            | *****        | ******          |
+| BART       | Trained with AESLC               | 0.1350          | 0.0803       | 0.0919          |
 | Gemma-7B   | Pre-trained                      | 0.2625          | 0.2167       | 0.2314          |
 | Gemma-7B   | Trained Using AESLC Corpus       | 0.2910          | 0.4127       | 0.3116          |
 
