@@ -5,6 +5,7 @@ from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel  # Import BaseModel from pydantic
 import os
 import torch
+import bart_pred2
 os.environ['USE_XFORMERS'] = '0'
 # Global model and tokenizer storage
 models = {}
@@ -150,37 +151,39 @@ email_prompt = """Below is an instruction that describes a task, paired with an 
 async def predict(data: InputData):
     model_name = data.model_name
     email_body = data.email_body
-
+    print(model_name)
     # Check if the model is loaded
-    if model_name not in models:
+    if model_name != 'sbtraining2020/email_bart_1' and model_name not in models:
         # Load model if not already loaded
         model_load_response = await load_model(ModelRequest(model_name=model_name))
         if 'message' not in model_load_response:
             raise HTTPException(status_code=500, detail="Model loading failed")
 
-    model = models[model_name]
-    tokenizer = tokenizers[model_name]
+    if model_name != 'sbtraining2020/email_bart_1':
+        model = models[model_name]
+        tokenizer = tokenizers[model_name]
+        print("Getting inputs through tokenizer...")
+        inputs = tokenizer(
+          [
+            email_prompt.format(
+            "Please help summarize the provided email body and generate email subject",
+            email_body,
+            ""
+            )
+          ], return_tensors="pt").to("cuda")
 
-    print("Getting inputs through tokenizer...")
-    inputs = tokenizer(
-        [
-          email_prompt.format(
-             "Please help summarize the provided email body and generate email subject",
-             email_body,
-             ""
-          )
-        ], return_tensors="pt").to("cuda")
-
-    print("Inputs:", inputs)
-    print("Generating the outputs...")
-    try:
-        outputs = model.generate(**inputs, max_new_tokens=64, use_cache=True)
-        print("Decoding outputs...")
-        decoded_output = tokenizer.batch_decode(outputs)
-        return {"predicted_subject": decoded_output[0]}
-    except Exception as e:
-        print(f"An error occurred during generation: {e}")
+        print("Inputs:", inputs)
+        print("Generating the outputs...")
+        try:
+            outputs = model.generate(**inputs, max_new_tokens=64, use_cache=True)
+            print("Decoding outputs...")
+            decoded_output = tokenizer.batch_decode(outputs)
+            return {"predicted_subject": decoded_output[0]}
+        except Exception as e:
+            print(f"An error occurred during generation: {e}")
         raise e
+    else:
+        return {"predicted_subject": bart_pred2.predict_bart(email_body)}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
