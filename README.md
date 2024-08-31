@@ -35,7 +35,7 @@ The results are summarized in the table below:
 | LLaMA-8B   | Trained Using AESLC Corpus       | 0.325           | 0.3166       | 0.3142          |
 | BART       | Pre-trained with Fine-tuning     | 0.0246          | 0.5319       | 0.0456          |
 | BART       | Trained with AESLC Corpos        | 0.3039          | 0.3788       | 0.3079          |
-| t5-small   | Pre-trained                      | ******          | ******       | ******          |
+| t5-small   | Pre-trained                      | 0.6130          | 0.6977       | 0.1225          |
 | t5-small   | Trained Using AESLC Corpus       | 0.5296          | 0.6229       | 0.5456          |
 
 
