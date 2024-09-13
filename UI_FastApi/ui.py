@@ -16,16 +16,17 @@ def extract_response(text):
     start_index = text.find(start_marker) + len(start_marker)
     # Check if start_marker is found
     if start_index == len(start_marker) - 1:
-        return "Start marker not found"
+        return text
     # Extract the response from the start index
     response = text[start_index:].strip()
     return response
 
 st.title("Email Subject Generator")
 model_options = {
-    "Bart": "sbtraining2020/email_bart_1",
+    "Bart": "sbtraining2020/email_bart",
     "Mistral": "nagthgr8/subject-mistrel",
-    "Llama": "sbtraining2020/esubjectgen_llama31_clean"
+    "Llama": "sbtraining2020/esubjectgen_llama31_clean",
+    "T5": "nagthgr8/subject-prompt-t5-small"
 }
 
 model = st.selectbox("Select a model", list(model_options.keys()))

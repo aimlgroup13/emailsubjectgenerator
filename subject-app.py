@@ -6,6 +6,7 @@ from pydantic import BaseModel  # Import BaseModel from pydantic
 import os
 import torch
 import bart_pred2
+import t5_pred
 os.environ['USE_XFORMERS'] = '0'
 # Global model and tokenizer storage
 models = {}
@@ -153,13 +154,13 @@ async def predict(data: InputData):
     email_body = data.email_body
     print(model_name)
     # Check if the model is loaded
-    if model_name != 'sbtraining2020/email_bart_1' and model_name not in models:
+    if model_name != 'sbtraining2020/email_bart' and model_name != 'nagthgr8/subject-prompt-t5-small' and model_name not in models:
         # Load model if not already loaded
         model_load_response = await load_model(ModelRequest(model_name=model_name))
         if 'message' not in model_load_response:
             raise HTTPException(status_code=500, detail="Model loading failed")
 
-    if model_name != 'sbtraining2020/email_bart_1':
+    if model_name != 'sbtraining2020/email_bart' and model_name != 'nagthgr8/subject-prompt-t5-small':
         model = models[model_name]
         tokenizer = tokenizers[model_name]
         print("Getting inputs through tokenizer...")
@@ -183,7 +184,10 @@ async def predict(data: InputData):
             print(f"An error occurred during generation: {e}")
         raise e
     else:
-        return {"predicted_subject": bart_pred2.predict_bart(email_body)}
+        if model_name == 'sbtraining2020/email_bart':
+            return {"predicted_subject": bart_pred2.predict_bart(email_body)}
+        else:
+            return {"predicted_subject": t5_pred.predict_subject_line(email_body)}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)

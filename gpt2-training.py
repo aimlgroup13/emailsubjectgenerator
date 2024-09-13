@@ -1,24 +1,20 @@
-import json
+import os
 import torch
-from transformers import GPT2LMHeadModel, GPT2Tokenizer, TextDataset, DataCollatorForLanguageModeling, Trainer, TrainingArguments
-import pandas as pd
-import numpy as np
-from datasets import Dataset
-from transformers import GPT2LMHeadModel, GPT2Tokenizer
-from unsloth import FastLanguageModel
-dtype = None # None for auto detection. Float16 for Tesla T4, V100, Bfloat16 for Ampere+
-load_in_4bit = True # Use 4bit quantization to reduce memory usage. Can be False.
+from torch.utils.data import DataLoader
+from transformers import GPT2Tokenizer, GPT2LMHeadModel, Trainer, TrainingArguments
 
-# Load pre-trained GPT-2 model and tokenizer
-model_name = 'gpt2'
-model = GPT2LMHeadModel.from_pretrained(model_name)
-tokenizer = GPT2Tokenizer.from_pretrained(model_name)
-tokenizer.pad_token=tokenizer.eos_token
-
-email_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+# Define the custom dataset class
+class SubjectDataset(torch.utils.data.Dataset):
+    def __init__(self, directory, tokenizer, max_length=256, is_test=False):
+        self.directory = directory
+        self.tokenizer = tokenizer
+        self.files = os.listdir(directory)
+        self.max_length = max_length
+        self.is_test = is_test
+        self.email_prompt = """Below is an instruction that describes a task, paired with an input that provides further context.
 
 ### Instruction:
-{}
+Predict the subject line of the email.
 
 ### Input:
 {}
@@ -26,73 +22,100 @@ email_prompt = """Below is an instruction that describes a task, paired with an 
 ### Response:
 {}"""
 
-EOS_TOKEN = tokenizer.eos_token # Must add EOS_TOKEN
-def formatting_prompts_func(examples):
-    instructions = examples["instruction"]
-    inputs       = examples["input"]
-    outputs      = examples["output"]
-    texts = []
-    for instruction, input_text, output_text in zip(instructions, inputs, outputs):
-        # Construct text with EOS token
-        text = email_prompt.format(instruction, input_text, output_text) + EOS_TOKEN
-        texts.append(text)
-    return { "text" : texts }
+    def __len__(self):
+        return len(self.files)
 
-# Path to your dataset.json file
-json_file_path = '/home/ramch/AI-AUTOMATED-QA/dataset.json'
+    def __getitem__(self, idx):
+        file_path = os.path.join(self.directory, self.files[idx])
+        with open(file_path, 'r') as f:
+            text = f.read()
 
-# Load JSON data into a Python list
-with open(json_file_path, 'r') as file:
-    data = json.load(file)
+        # Extract the email body and subject line from the text
+        parts = text.split('@subject')
+        body = parts[0].strip()
+        if self.is_test and '@ann0' in text:
+            subject = parts[1].split('@ann0')[0].strip()
+        else:
+            subject = parts[1].strip()
 
-# Convert the list of dictionaries to a Hugging Face Dataset
-dataset = Dataset.from_list(data)
-# Apply the formatting function to the dataset
-dataset = dataset.map(formatting_prompts_func, batched=True)
+        # Create the email prompt with the input body
+        prompt = self.email_prompt.format(body, "")
 
-from sklearn.model_selection import train_test_split
-dataset_dict = dataset.train_test_split(test_size=0.005)
+        # Tokenize the prompt with padding and truncation
+        inputs = self.tokenizer(
+            [prompt],
+            return_tensors='pt',
+            max_length=self.max_length,
+            padding='max_length',
+            truncation=True
+        )
 
-print(dataset)
-from trl import SFTTrainer
-from transformers import TrainingArguments
-from unsloth import is_bfloat16_supported
+        # Tokenize the subject line with padding and truncation
+        labels = self.tokenizer(
+           subject,
+           return_tensors='pt',
+           max_length=self.max_length,
+           padding='max_length',
+           truncation=True
+        )
+        # Flatten tensors and ensure matching lengths
+        input_ids = inputs['input_ids'].squeeze()  # Remove batch dimension
+        attention_mask = inputs['attention_mask'].squeeze()  # Remove batch dimension
+        label_ids = labels['input_ids'].squeeze()  # Remove batch dimension
 
-from transformers import TrainingArguments
-trainer = SFTTrainer(
-    model=model,
-    tokenizer=tokenizer,
-    train_dataset=dataset_dict["train"],
-    eval_dataset=dataset_dict["test"],
-    dataset_text_field="text",
-    args=TrainingArguments(
-        per_device_train_batch_size=2,
-        per_device_eval_batch_size=2,
-        gradient_accumulation_steps=4,
-        evaluation_strategy="steps",
-        warmup_steps=5,
-        num_train_epochs=3,
-        learning_rate=2e-4,
-        fp16=not is_bfloat16_supported(),
-        bf16=is_bfloat16_supported(),
-        logging_steps=1,
-        optim="adamw_8bit",
-        weight_decay=0.01,
-        lr_scheduler_type="linear",
-        seed=3407,
-        output_dir="outputs",
-        logging_strategy='steps',
-    ),
+        # Ensure labels are padded to the same length as input_ids
+        if len(label_ids) < len(input_ids):
+            padding_length = len(input_ids) - len(label_ids)
+            label_ids = torch.cat([label_ids, torch.zeros(padding_length, dtype=torch.long)], dim=0)
+        elif len(label_ids) > len(input_ids):
+            label_ids = label_ids[:len(input_ids)]
+
+        return {
+            'input_ids': input_ids,
+            'attention_mask': attention_mask,
+            'labels': label_ids
+        }
+
+# Load the tokenizer and add padding token
+model_name = "gpt2"  # Use "gpt2-medium", "gpt2-large", etc., for larger models
+tokenizer = GPT2Tokenizer.from_pretrained(model_name)
+
+# Load the model
+model = GPT2LMHeadModel.from_pretrained(model_name)
+
+# Resize model embeddings after adding a new padding token
+model.resize_token_embeddings(len(tokenizer))
+
+# Load the dataset
+train_dataset = SubjectDataset(directory='/home/ramch/AI-AUTOMATED-QA/AESLC/enron_subject_line/train', tokenizer=tokenizer, max_length=256)
+eval_dataset = SubjectDataset(directory='/home/ramch/AI-AUTOMATED-QA/AESLC/enron_subject_line/test', tokenizer=tokenizer, max_length=256, is_test=True)
+
+# Define training arguments
+training_args = TrainingArguments(
+    output_dir="./results",
+    evaluation_strategy="epoch",
+    learning_rate=2e-5,
+    per_device_train_batch_size=2,
+    per_device_eval_batch_size=2,
+    num_train_epochs=3,
+    weight_decay=0.01,
+    logging_dir="./logs",
+    logging_steps=10,
+    save_total_limit=2,
+    save_steps=500
 )
-# Ensure the model is moved to the appropriate device (CPU or GPU)
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-model.to(device)
 
-# Start training
+# Initialize the Trainer
+trainer = Trainer(
+    model=model,
+    args=training_args,
+    train_dataset=train_dataset,
+    eval_dataset=eval_dataset,
+    tokenizer=tokenizer,
+)
+
+# Train the model
 trainer.train()
-print("Training Completed")
-model_name = "nagthgr8/subject-gpt2"
-print("Saving the model")
-model.push_to_hub(model_name)
-tokenizer.push_to_hub(model_name)
-print("Done")
+
+model.push_to_hub("nagthgr8/subject-gpt2")
+tokenizer.push_to_hub("nagthgr8/subject-gpt2")

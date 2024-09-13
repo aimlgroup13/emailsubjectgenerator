@@ -2,7 +2,7 @@ import torch
 from transformers import AutoTokenizer, AutoModelForCausalLM
 from transformers import BartForConditionalGeneration, BartTokenizer
 
-MODEL_NAME = "sbtraining2020/email_bart_1"
+MODEL_NAME = "sbtraining2020/email_bart"
 
 max_seq_length = 2048
 dtype = None
@@ -12,7 +12,7 @@ from transformers import AutoTokenizer, AutoModelForCausalLM
 hf_tokenizer =BartTokenizer.from_pretrained(MODEL_NAME) # AutoTokenizer.from_pretrained( MODEL_NAME) # "sbtraining2020/esubjectgen_llama31_clean")
 hf_model = BartForConditionalGeneration.from_pretrained(MODEL_NAME) #"sbtraining2020/esubjectgen_llama31_clean")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-input_tensor = input_tensor.to('cuda')
+hf_model.to(device)
 def predict_bart(text, max_length=500):
     """
     Generates a email subject for the given text using a pre-trained model.
@@ -41,18 +41,18 @@ def predict_bart(text, max_length=500):
     return subject
 
 
-email_text = """
-Michelle Here are my very minor comments.
-However we still need to wait on any additions, based on meeting with SME's today.
-One concern is the firing of the learner who performs  bad in the final two scenarios.
-Do we face any copyright issues using the CNN type themes?
-In addition, I think we need to stay clear of anything that remotely seems like California or anything that really happen with Enron?
-(i.e.So-cal Waha) In addition, comments on regulatory issues may be a problem (i.e.California Legislature).
-Sheri  When you read all the scripts together and due to the similar mechanics being taught it appears very repetitious.
-Thus I do believe we need to maybe use a "Dateline" type theme for one, and a "60 Minute" type theme for another scenario vice just the CNN type theme.
-In the last two scenarios can we include a promotion out of the associate program for the stellar performers (i.e.title change to manager)?
-Cheers Kirk
-"""
+#email_text = """
+#Michelle Here are my very minor comments.
+#However we still need to wait on any additions, based on meeting with SME's today.
+#One concern is the firing of the learner who performs  bad in the final two scenarios.
+#Do we face any copyright issues using the CNN type themes?
+#In addition, I think we need to stay clear of anything that remotely seems like California or anything that really happen with Enron?
+#(i.e.So-cal Waha) In addition, comments on regulatory issues may be a problem (i.e.California Legislature).
+#Sheri  When you read all the scripts together and due to the similar mechanics being taught it appears very repetitious.
+#Thus I do believe we need to maybe use a "Dateline" type theme for one, and a "60 Minute" type theme for another scenario vice just the CNN type theme.
+#In the last two scenarios can we include a promotion out of the associate program for the stellar performers (i.e.title change to manager)?
+#Cheers Kirk
+#"""
 
-result = predict_bart(email_text)
-print(result)
+#result = predict_bart(email_text)
+#print(result)
