@@ -18,7 +18,7 @@ tokenizer = GPT2Tokenizer.from_pretrained('nagthgr8/gpt2-qa')
 
 import torch
 
-def generate_answer(question, max_length=256):
+def generate_answer(question, max_length=512):
     # Tokenize the input question
     inputs = tokenizer(question, return_tensors='pt', padding=True, truncation=True, max_length=max_length)
     
