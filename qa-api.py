@@ -7,6 +7,7 @@ import os
 import torch
 import gpt2_qa_predict
 import t5_qa_predict
+import qwen_qa_predict
 os.environ['USE_XFORMERS'] = '0'
 # Global model and tokenizer storage
 models = {}
@@ -36,8 +37,10 @@ async def predict(data: InputData):
     # Check if the model is loaded
     if model_name == 'nagthgr8/gpt2-qa':
        return {"predicted_answer": gpt2_qa_predict.generate_answer(question)}
-    else:
+    elif model_name == 'nagthgr8/qa-t5-base':
        return {"predicted_answer": t5_qa_predict.predict_answer(question)}
+    else:
+       return {"predicted_answer": qwen_qa_predict.predict_answer(question)}
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8000)
