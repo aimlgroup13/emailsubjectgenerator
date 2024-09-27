@@ -6,6 +6,7 @@ from transformers import GPT2LMHeadModel, GPT2Tokenizer, TrainingArguments, Trai
 from torch.optim import AdamW
 import matplotlib.pyplot as plt
 import datetime
+import pprint
 class QADataset(Dataset):
     def __init__(self, json_path, tokenizer, split='train', max_length=256):
         self.tokenizer = tokenizer
@@ -77,44 +78,40 @@ class LossGradientCallback(TrainerCallback):
         self.training_losses = []
         self.evaluation_losses = []
         self.gradient_values = []
-
     def on_train_begin(self, args, state, control, **kwargs):
         self._train_loss = 0
         self._globalstep = 0
-    def on_log(self, args, state, control, logs, **kwargs):
-        loss_key = 'loss' if 'loss' in logs else 'loss_train' if 'loss_train' in logs else 'loss_eval'
-        loss = logs.get(loss_key)
-    
-        if loss is not None:
-           self.training_losses.append(loss)
-           self._train_loss += loss
-           self._globalstep += 1
-        else:
-           print(f"Loss key '{loss_key}' not found in logs.")
+    def on_log(self, args, state, control, model=None, logs=None, **kwargs):
+        for key, value in logs.items():
+            if "loss" in key.lower():
+                self.training_losses.append(value)
     def on_evaluate(self, args, state, control, metrics, **kwargs):
         self.evaluation_losses.append(metrics['eval_loss'])
 
     def on_step_end(self, args, state, control, **kwargs):
-        # Capture gradients
-        model = self.trainer.model  # Access model through trainer
-        total_norm = 0
-        count = 0
-        for p in model.parameters():
-            if p.grad is not None:
-                total_norm += p.grad.norm().item() ** 2
-                count += 1
-        total_norm = total_norm ** 0.5
-        self.gradient_values.append(total_norm)
+        # Logging gradient norms requires accessing the model's parameters
+        # and computing the gradient norms manually
+        gradient_norm = 0
+        for param in self.trainer.model.parameters():
+            if param.grad is not None:
+                gradient_norm += param.grad.norm().item() ** 2
+        gradient_norm = gradient_norm ** 0.5
+        self.gradient_values.append(gradient_norm)
 
-
-# Define training arguments
 training_args = TrainingArguments(
-    per_device_train_batch_size=4,
-    per_device_eval_batch_size=4,
-    output_dir='./results',
-    evaluation_strategy='epoch',
-    logging_dir='./logs',
+    output_dir="./results",
     num_train_epochs=3,
+    per_device_train_batch_size=16,
+    per_device_eval_batch_size=64,
+    evaluation_strategy="steps",
+    eval_steps=1,  # Evaluate every 1 step
+    logging_steps=1,
+    save_strategy="steps",
+    load_best_model_at_end=True,
+    metric_for_best_model="eval_loss",
+    greater_is_better=False,
+    save_on_each_node=True,
+    report_to="all",
 )
 
 # Define trainer
@@ -135,15 +132,15 @@ trainer.train()
 
 model_name = 'gpt2-qa'
 save_directory = f"results/{model_name}"
-# Create the directory if it does not exist
-#if not os.path.exists(save_directory):
-#    os.makedirs(save_directory)
+#Create the directory if it does not exist
+if not os.path.exists(save_directory):
+    os.makedirs(save_directory)
 
-#model.save_pretrained(save_directory)
-#tokenizer.save_pretrained(save_directory)
+model.save_pretrained(save_directory)
+tokenizer.save_pretrained(save_directory)
 
-#model.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial model push")
-#tokenizer.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial tokenizer push")
+model.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial model push")
+tokenizer.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial tokenizer push")
 # Access captured values
 training_loss = callback.training_losses
 eval_loss = callback.evaluation_losses
@@ -173,22 +170,8 @@ fig_loss.savefig(os.path.join(training_loss_dir, filename))
 ax_gradient.plot(gradient_values)
 ax_gradient.set_xlabel('Iterations')
 ax_gradient.set_ylabel('Gradient Norm')
-# Plot gradient norms in the second subplot
-ax_gradient.plot(gradient_values)
-ax_gradient.set_xlabel('Iterations')
-ax_gradient.set_ylabel('Gradient Norm')
 ax_gradient.set_title('Gradient Norm over Iterations')
 fig_gradient.savefig(os.path.join(training_loss_dir, fl_grad))
 plt.close('all')
 model_name = "gpt2-qa"
 save_directory = f"results/{model_name}"
-# Create the directory if it does not exist
-#if not os.path.exists(save_directory):
-#    os.makedirs(save_directory)
-
-# Optionally save the model
-#model.save_pretrained(save_directory)
-#tokenizer.save_pretrained(save_directory)
-# Push model and tokenizer to Hugging Face Model Hub
-#model.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial model push")
-#tokenizer.push_to_hub(f"nagthgr8/{model_name}", commit_message="Initial tokenizer push")
