@@ -1,5 +1,6 @@
 import json
 import torch
+import re
 from transformers import pipeline
 from evaluate import load
 from rouge_score import rouge_scorer
@@ -27,7 +28,7 @@ with open('/home/ramch/AI-AUTOMATED-QA/AIMLQA/aiml-qa-dataset.json', 'r') as f:
 testdataset = data.get('TEST')
 
 # Define email prompt and EOS token
-email_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
+alpaca_prompt = """Below is an instruction that describes a task, paired with an input that provides further context. Write a response that appropriately completes the request.
 
 ### Instruction:
 {}
@@ -55,26 +56,25 @@ for i in range(len(testdataset[:100])):
     answer2 = example['answer2']  # List of references
     # Tokenize input text and generate prediction
     inputs = tokenizer(
-        question,
-        return_tensors='pt',
-        max_length=max_length,
-        padding='max_length',
-        truncation=True
-    )
-
-    # Generate predictions
-    with torch.no_grad():
-        outputs = model.generate(
-            input_ids=inputs['input_ids'].to(model.device),
-            attention_mask=inputs['attention_mask'].to(model.device),
-            max_length=max_length
+    [
+        alpaca_prompt.format(
+            "Please help summarize the provided email body and generate email subject", # instruction
+            question, "", # output - leave this blank for generation!
         )
+    ], return_tensors = "pt").to("cuda")
+    outputs = model.generate(**inputs, max_new_tokens = 64, use_cache = True)
     # Decode the predictions
-    answer = tokenizer.decode(outputs[0], skip_special_tokens=True)
+    answer = tokenizer.batch_decode(outputs)
     print("Question:")
     print(question)
     print("\nPredicted Answer:")
     print(answer)
+    pattern = r'### Response:\n(.*?)(<|endoftext|>)'
+    match = re.search(pattern, answer[0])
+    if match:
+        answer = match.group(1).strip()
+    else:
+        answer = "No response found."    
     # Calculate ROUGE scores against each reference and store the best
     best_scores = {'rouge1': {'fmeasure': 0, 'precision': 0, 'recall': 0},
                    'rouge2': {'fmeasure': 0, 'precision': 0, 'recall': 0},
@@ -86,14 +86,14 @@ for i in range(len(testdataset[:100])):
                                    'precision': score.precision,
                                    'recall': score.recall}
     all_scores.append(best_scores)
-    scores = scorer.score(answer, answer2)
-    for metric, score in scores.items():
-        if score.fmeasure > best_scores[metric]['fmeasure']:
-            best_scores[metric] = {'fmeasure': score.fmeasure,
-                                   'precision': score.precision,
-                                   'recall': score.recall}
-    print(best_scores)
-    all_scores.append(best_scores)
+#    scores = scorer.score(answer, answer2)
+#    for metric, score in scores.items():
+#        if score.fmeasure > best_scores[metric]['fmeasure']:
+#            best_scores[metric] = {'fmeasure': score.fmeasure,
+#                                   'precision': score.precision,
+#                                   'recall': score.recall}
+#    print(best_scores)
+#    all_scores.append(best_scores)
 # Aggregate scores (e.g., calculate average)
 avg_scores = {
     'rouge1': {'fmeasure': 0, 'precision': 0, 'recall': 0},
