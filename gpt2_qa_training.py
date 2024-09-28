@@ -173,5 +173,3 @@ ax_gradient.set_ylabel('Gradient Norm')
 ax_gradient.set_title('Gradient Norm over Iterations')
 fig_gradient.savefig(os.path.join(training_loss_dir, fl_grad))
 plt.close('all')
-model_name = "gpt2-qa"
-save_directory = f"results/{model_name}"
